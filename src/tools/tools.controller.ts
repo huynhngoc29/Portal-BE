@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ToolsService } from './tools.service';
 import { CreateToolDto } from './dto/create-tool.dto';
 import { UpdateToolDto } from './dto/update-tool.dto';
@@ -23,7 +32,10 @@ export class ToolsController {
   }
 
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateToolDto: UpdateToolDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateToolDto: UpdateToolDto,
+  ) {
     return this.toolsService.update(id, updateToolDto);
   }
 

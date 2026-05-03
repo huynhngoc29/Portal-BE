@@ -21,11 +21,11 @@ export class ToolsService {
     return await this.toolsRepository.find({ where: { is_active: true } });
   }
 
-  async findOne(id: number): Promise<Tool> {
-    return await this.toolsRepository.findOne({ where: { id } });
+  async findOne(id: number): Promise<Tool | null> {
+    return (await this.toolsRepository.findOne({ where: { id } })) || null;
   }
 
-  async update(id: number, updateToolDto: UpdateToolDto): Promise<Tool> {
+  async update(id: number, updateToolDto: UpdateToolDto): Promise<Tool | null> {
     await this.toolsRepository.update(id, updateToolDto);
     return await this.findOne(id);
   }

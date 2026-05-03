@@ -21,7 +21,8 @@ import { Tool } from './tools/entities/tool.entity';
       database: process.env.DB_NAME,
       entities: [Tool],
       synchronize: true,
-      ssl: process.env.DB_SSL === 'true',
+      ssl:
+        process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
     ToolsModule,
   ],

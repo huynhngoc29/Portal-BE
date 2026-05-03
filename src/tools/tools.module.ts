@@ -7,6 +7,6 @@ import { Tool } from './entities/tool.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Tool])],
   controllers: [ToolsController],
-  providers: [ToolsService]
+  providers: [ToolsService],
 })
 export class ToolsModule {}
