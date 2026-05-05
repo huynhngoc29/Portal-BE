@@ -20,6 +20,15 @@ export class User {
   @Column({ type: 'varchar', length: 255, select: false, nullable: true })
   password: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  googleId: string | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  facebookId: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  avatarUrl: string | null;
+
   @Column({ default: false })
   isAdmin: boolean;
 

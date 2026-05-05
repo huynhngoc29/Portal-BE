@@ -76,6 +76,78 @@ export class AuthService {
     return this.generateToken(user);
   }
 
+  async socialLogin(
+    email: string,
+    fullName: string,
+    provider: 'google' | 'facebook',
+    providerId: string,
+    avatarUrl?: string,
+  ) {
+    let user = await this.usersRepository.findOne({
+      where: { email },
+    });
+
+    if (!user) {
+      // Create new user with social provider
+      user = this.usersRepository.create({
+        email,
+        fullName,
+        password: null, // Social users don't have password
+        isAdmin: false,
+        [provider === 'google' ? 'googleId' : 'facebookId']: providerId,
+        avatarUrl: avatarUrl || null,
+      });
+      await this.usersRepository.save(user);
+    } else {
+      // Update existing user with provider ID if not already set
+      if (provider === 'google' && !user.googleId) {
+        user.googleId = providerId;
+      } else if (provider === 'facebook' && !user.facebookId) {
+        user.facebookId = providerId;
+      }
+      if (avatarUrl) {
+        user.avatarUrl = avatarUrl;
+      }
+      await this.usersRepository.save(user);
+    }
+
+    return this.generateToken(user);
+  }
+
+  async updateProfile(
+    userId: number,
+    updates: { fullName?: string; avatarUrl?: string },
+  ) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    if (updates.fullName) user.fullName = updates.fullName;
+    if (typeof updates.avatarUrl !== 'undefined')
+      user.avatarUrl = updates.avatarUrl;
+
+    await this.usersRepository.save(user);
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        avatarUrl: user.avatarUrl || null,
+        isAdmin: user.isAdmin,
+      },
+    };
+  }
+
+  getUserIdFromToken(token: string) {
+    try {
+      const payload = this.jwtService.verify(token);
+      // payload.sub expected to be user id
+      return payload.sub as number;
+    } catch (err) {
+      return null;
+    }
+  }
+
   private generateToken(user: User) {
     const payload = {
       sub: user.id,
@@ -91,6 +163,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        avatarUrl: (user as any).avatarUrl || null,
         isAdmin: user.isAdmin,
       },
     };
