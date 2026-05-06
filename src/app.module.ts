@@ -4,7 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ToolsModule } from './tools/tools.module';
+import { AuthModule } from './auth/auth.module';
 import { Tool } from './tools/entities/tool.entity';
+import { User } from './auth/entities/user.entity';
 
 @Module({
   imports: [
@@ -19,11 +21,12 @@ import { Tool } from './tools/entities/tool.entity';
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
-      entities: [Tool],
-      synchronize: true,
+      entities: [Tool, User],
+      synchronize: process.env.DB_SYNCHRONIZE === 'true',
       ssl:
         process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
+    AuthModule,
     ToolsModule,
   ],
   controllers: [AppController],

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -7,10 +8,12 @@ import {
   Put,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ToolsService } from './tools.service';
 import { CreateToolDto } from './dto/create-tool.dto';
 import { UpdateToolDto } from './dto/update-tool.dto';
+import { AdminToolGuard } from './guards/admin-tool.guard';
 
 @Controller('tools')
 export class ToolsController {
@@ -19,6 +22,12 @@ export class ToolsController {
   @Post()
   create(@Body() createToolDto: CreateToolDto) {
     return this.toolsService.create(createToolDto);
+  }
+
+  @Post('admin')
+  @UseGuards(AdminToolGuard)
+  createByAdmin(@Body() createToolDto: CreateToolDto) {
+    return this.toolsService.createByAdmin(createToolDto);
   }
 
   @Get()
