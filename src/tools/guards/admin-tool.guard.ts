@@ -4,27 +4,35 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { AuthService } from '../../auth/auth.service';
 
 @Injectable()
 export class AdminToolGuard implements CanActivate {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly authService: AuthService) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<{
       headers: Record<string, string | string[] | undefined>;
     }>();
 
-    const configuredAdminKey = this.configService.get<string>('ADMIN_TOOL_KEY');
-    const headerValue = request.headers['x-admin-key'];
-    const adminKey = Array.isArray(headerValue) ? headerValue[0] : headerValue;
+    const headerValue = request.headers.authorization;
+    const authorization = Array.isArray(headerValue)
+      ? headerValue[0]
+      : headerValue;
+    const token = authorization?.replace(/^Bearer\s+/i, '');
 
-    if (!configuredAdminKey) {
-      throw new UnauthorizedException('ADMIN_TOOL_KEY is not configured');
+    if (!token) {
+      throw new UnauthorizedException('Missing authorization token');
     }
 
-    if (!adminKey || adminKey !== configuredAdminKey) {
-      throw new UnauthorizedException('Invalid admin key');
+    const userId = this.authService.getUserIdFromToken(token);
+    if (!userId) {
+      throw new UnauthorizedException('Invalid token');
+    }
+
+    const caller = await this.authService.findUserById(userId);
+    if (!caller || !caller.isAdmin) {
+      throw new UnauthorizedException('Not authorized');
     }
 
     return true;

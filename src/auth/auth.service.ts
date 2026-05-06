@@ -138,6 +138,51 @@ export class AuthService {
     };
   }
 
+  // Admin: list users
+  async listUsers() {
+    const users = await this.usersRepository.find();
+    return users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      fullName: u.fullName,
+      isAdmin: u.isAdmin,
+      avatarUrl: u.avatarUrl || null,
+      createdAt: u.createdAt,
+    }));
+  }
+
+  // Admin: update user (fullName, isAdmin)
+  async adminUpdateUser(
+    id: number,
+    updates: { fullName?: string; isAdmin?: boolean },
+  ) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new BadRequestException('User not found');
+    if (typeof updates.fullName !== 'undefined')
+      user.fullName = updates.fullName;
+    if (typeof updates.isAdmin !== 'undefined') user.isAdmin = updates.isAdmin;
+    await this.usersRepository.save(user);
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      isAdmin: user.isAdmin,
+      avatarUrl: user.avatarUrl || null,
+    };
+  }
+
+  // Admin: delete user
+  async adminDeleteUser(id: number) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) throw new BadRequestException('User not found');
+    await this.usersRepository.remove(user);
+    return { success: true };
+  }
+
+  async findUserById(id: number) {
+    return await this.usersRepository.findOne({ where: { id } });
+  }
+
   getUserIdFromToken(token: string) {
     try {
       const payload = this.jwtService.verify(token);

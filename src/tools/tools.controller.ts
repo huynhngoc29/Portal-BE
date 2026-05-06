@@ -4,7 +4,6 @@ import {
   Get,
   Post,
   Body,
-  Headers,
   Param,
   Put,
   Delete,
@@ -27,20 +26,8 @@ export class ToolsController {
 
   @Post('admin')
   @UseGuards(AdminToolGuard)
-  createByAdmin(
-    @Body() createToolDto: CreateToolDto,
-    @Headers('x-admin-id') adminId?: string,
-  ) {
-    if (adminId === undefined) {
-      return this.toolsService.createByAdmin(createToolDto);
-    }
-
-    const parsedAdminId = Number(adminId);
-    if (!Number.isInteger(parsedAdminId) || parsedAdminId <= 0) {
-      throw new BadRequestException('x-admin-id must be a positive integer');
-    }
-
-    return this.toolsService.createByAdmin(createToolDto, parsedAdminId);
+  createByAdmin(@Body() createToolDto: CreateToolDto) {
+    return this.toolsService.createByAdmin(createToolDto);
   }
 
   @Get()

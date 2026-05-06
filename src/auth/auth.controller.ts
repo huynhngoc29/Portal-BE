@@ -5,6 +5,8 @@ import {
   Patch,
   Headers,
   BadRequestException,
+  Get,
+  Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signup.dto';
@@ -126,6 +128,61 @@ export class AuthController {
       providerId,
       avatarUrl,
     );
+  }
+
+  // Admin endpoints
+  @Get('admin/users')
+  async listUsers(@Headers('authorization') authHeader: string) {
+    if (!authHeader) throw new BadRequestException('Missing authorization');
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const userId = this.authService.getUserIdFromToken(token);
+    if (!userId) throw new BadRequestException('Invalid token');
+    // check admin
+    const caller = await this.authService['usersRepository'].findOne({
+      where: { id: userId },
+    });
+    if (!caller || !caller.isAdmin)
+      throw new BadRequestException('Not authorized');
+    return this.authService.listUsers();
+  }
+
+  @Patch('admin/users/:id')
+  async adminUpdateUser(
+    @Headers('authorization') authHeader: string,
+    @Body() body: any,
+  ) {
+    if (!authHeader) throw new BadRequestException('Missing authorization');
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const userId = this.authService.getUserIdFromToken(token);
+    if (!userId) throw new BadRequestException('Invalid token');
+    const caller = await this.authService['usersRepository'].findOne({
+      where: { id: userId },
+    });
+    if (!caller || !caller.isAdmin)
+      throw new BadRequestException('Not authorized');
+    const id = Number((body && body.id) || body?.userId || 0);
+    if (!id) throw new BadRequestException('Invalid target id');
+    const updates = { fullName: body.fullName, isAdmin: body.isAdmin };
+    return this.authService.adminUpdateUser(id, updates);
+  }
+
+  @Delete('admin/users/:id')
+  async adminDeleteUser(
+    @Headers('authorization') authHeader: string,
+    @Body() body: any,
+  ) {
+    if (!authHeader) throw new BadRequestException('Missing authorization');
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const userId = this.authService.getUserIdFromToken(token);
+    if (!userId) throw new BadRequestException('Invalid token');
+    const caller = await this.authService['usersRepository'].findOne({
+      where: { id: userId },
+    });
+    if (!caller || !caller.isAdmin)
+      throw new BadRequestException('Not authorized');
+    const id = Number((body && body.id) || body?.userId || 0);
+    if (!id) throw new BadRequestException('Invalid target id');
+    return this.authService.adminDeleteUser(id);
   }
 
   @Post('google-callback')

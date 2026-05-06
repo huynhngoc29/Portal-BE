@@ -22,7 +22,7 @@ import { User } from './auth/entities/user.entity';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [Tool, User],
-      synchronize: true,
+      synchronize: process.env.DB_SYNCHRONIZE === 'true',
       ssl:
         process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
     }),
