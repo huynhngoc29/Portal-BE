@@ -73,7 +73,9 @@ export class AuthService {
     }
 
     // Return token without password
-    return this.generateToken(user);
+    // Fetch full user record (to include avatarUrl and other fields)
+    const fullUser = await this.usersRepository.findOne({ where: { id: user.id } });
+    return this.generateToken(fullUser || user);
   }
 
   async socialLogin(
